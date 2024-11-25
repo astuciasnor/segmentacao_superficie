@@ -11,15 +11,15 @@
 
 # Fonte: https://www.youtube.com/watch?v=mEVkdh6_0Pk
 
-  remove(list=ls())
+        # remove(list=ls())
+        # 
+        # if (!require("BiocManager", quietly = TRUE))
+        #   install.packages("BiocManager")
+        # BiocManager::install("EBImage")
   
-  if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-  BiocManager::install("EBImage")
-  library(EBImage)
 
 # Carregando imagens ------------------------------------------------------
-  setwd("D:/Script_imagens/Imagens/Segment_images_ebimage/superficies")
+  
   library(EBImage) # Parece que ele é um pouco melhor que OpenImageR
   
   im <- readImage("images/area_sarnambi_fundo_preto/imagem2.jpg")
@@ -54,7 +54,7 @@
   mfundo <- mfundo[1:20000,]
   colnames(mfundo) <- c("R","G","B")
 
-  # Repetindo para a folha
+  # Repetindo para o sarnambi
   msarnambis <- cbind(c(sarnambis@.Data[,,1]),
                    c(sarnambis@.Data[,,2]),
                    c(sarnambis@.Data[,,3]))
@@ -96,7 +96,7 @@
   plot(im2) # A referencia e as sarnambis se destacam do fundo
   # Modelo conseguiu separa o que é fundo do restante
   
-# Criar outro modelo para separar a imagem de ref do que é folha ---------------
+# Criar outro modelo para separar a imagem de ref do que é sarnambi ---------------
 
   Mat2 <- rbind(cbind(msarnambis,0), 
                 cbind(mref,1))
@@ -117,9 +117,9 @@
   # Observe o quanto a matriz Mobj é menor que a Mim em termos de obs. Isto porque
   # o fundo é muito maior que os objetos como podemos ver:
   plot(im)
-  nrow(Mobj)/nrow(Mim)  # Aprox 30%
+  nrow(Mobj)/nrow(Mim)  # Aprox 40%
   
-  # Predizendo o que é Referencia de Folha dentro da matriz de objetos: Mobj
+  # Predizendo o que é Referencia de Concha de sarnambi dentro da matriz de objetos: Mobj
   pred2 <- predict(modelo2,newdata = Mobj,type="response")
   pred2 <- round(pred2,0)
   
