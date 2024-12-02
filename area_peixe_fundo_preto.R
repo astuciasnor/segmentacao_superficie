@@ -22,13 +22,13 @@
   
   library(EBImage) # Parece que ele é um pouco melhor que OpenImageR
   
-  im <- readImage("images/area_sarnambi_fundo_preto/imagem2.jpg")
+  im <- readImage("images/area_peixe_fundo_preto/imagem_peixe.jpg")
   plot(im)
-  ref <- readImage("images/area_sarnambi_fundo_preto/Referencia2.jpg")
+  ref <- readImage("images/area_peixe_fundo_preto/imagem_referencia.jpg")
   plot(ref)
-  fundo <- readImage("images/area_sarnambi_fundo_preto/fundo_sarnambi2.jpg")
+  fundo <- readImage("images/area_peixe_fundo_preto/imagem_fundo.jpg")
   plot(fundo)
-  sarnambis <- readImage("images/area_sarnambi_fundo_preto/concha_sarnambi2.jpg")
+  sarnambis <- readImage("images/area_peixe_fundo_preto/morfo_peixe.jpg")
   plot(sarnambis)
 
 
@@ -136,7 +136,7 @@
 
 # Área corrigida para cm²
 # Objeto de referencia (cartão vermelho): 46.75 cm²
-  AreaCor <- Area*11.35/NumPixelRef
+  AreaCor <- Area*7.557/NumPixelRef
   
   # Obtendo as coordenadas dos objetos
   Coord <- computeFeatures.moment(MPred1b) # Pega a coordenada do ponto de massa
@@ -144,3 +144,15 @@
   
   plot(im)
   text(Coord[,1],Coord[,2],round(AreaCor,2 ),col = "red", cex=0.8)
+
+# Calculo dos diametros min e max
+  
+  ID3 <- Shape[,1] > 100
+  summary(ID3)
+  diam_max <- Shape[ID3,6]
+  D_max <- diam_max*38.42/NumPixelRef
+  
+  D_max <- AreaCor/0.1967
+  plot(im)
+  text(Coord[,1],Coord[,2],round(D_max,2 ),col = "red", cex=0.8)
+  
