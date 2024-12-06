@@ -182,11 +182,50 @@
   
   
   
-  # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  # Estudo de correlações entre as variáveis medidas e preditas ----------
+  
+  # Improtando dados medidos das conchas
+  library(readxl)
+  library(tidyverse)
+  
+  morfometria <- read_excel("dados/morfometria_sarnambi.xlsx", sheet = 1)
+  preditos <- read_excel("dados/morfometria_sarnambi.xlsx", sheet = 2)
+  dados <- inner_join(morfometria, preditos, by = "ID")
+  
+  # correlacionando entre diametro_pred e diametro medido
+  dados |> 
+    ggplot(aes(x = `Dmax (mm)`, y = diam_pred)) +
+    geom_point() +
+    geom_smooth(method = 'lm') +
+    theme_minimal()
+  
+  # Relação entre superificie e peso
+  
+  dados |> 
+    ggplot(aes(x = area_pred, y = `Peso (g)`)) +
+    geom_point() +
+    geom_smooth(method = 'lm') +
+    theme_minimal()
+  
+  # Caalculo da média dos erros do diametro maximo
+  dados2 <- dados |> 
+    mutate(diam_max_cm = `Dmax (mm)`/10,
+           Erro_diam = (diam_pred - diam_max_cm)/diam_max_cm*100)
+  
+  dados2 |> 
+    ggplot(aes(x = diam_max_cm, y = Erro_diam)) +
+    geom_point(size =2) +
+    geom_line(y = 0, color = "blue") +
+    geom_line(y = 5, color = "red") +
+    geom_line(y = -5, color = "red") +
+    geom_text(aes(label = ID), 
+              size = 2.5,               # Tamanho menor dos rótulos
+              nudge_y = 0.6,          # Afastar verticalmente
+              nudge_x = 0.01) +        # Afastar horizontalmente (se necessário)
+    labs(x = "Diametro máximo (cm)", y = "Erro relativo (%)") 
   
   
-  # correlacionando peso e área
-  area_peso <- as.data.frame(AreaCor)
+# Salvar dados para o exccel
   library(openxlsx)
-  write.xlsx(x = area_peso, "area_peso_exp.xlsx")
+
   
