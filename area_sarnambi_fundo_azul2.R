@@ -28,31 +28,29 @@
 
 
 # Transformando valores de cor em matriz (Array bidimensional) -----------------------------------------
-
-  # Pega imagens de forma diferente que o OpenImageR e o arquivo de imagem é um pouco
-  # diferente
+# Cada imagem é convertida para uma matriz de pixels (linhas e colunas), cada pixel 
+  # tendo 3 valores: R, G e B.
+ 
+  mref <- cbind(c(ref@.Data[,,1]),  # Canal vermelho da imagem de referência
+                c(ref@.Data[,,2]),  # Canal verde
+                c(ref@.Data[,,3]))  # Canal azul
   
-  mref <- cbind(c(ref@.Data[,,1]), # pega todas as linhas e colunas do canal vermelho
-                c(ref@.Data[,,2]), # Canal verde
-                c(ref@.Data[,,3])) # do canal azul
-  
-# Aleatorizar e pegar uma parte da dos pixels
-  mref <- mref[sample(1:nrow(mref)),] # embaralha o conjunto de dados 
-  mref <- mref[1:20000,] # Pegando 20000 primeiros valores
+  # Embaralha as linhas (pixels) da matriz da referência
+  mref <- mref[sample(1:nrow(mref)),]
+  mref <- mref[1:20000,]  # Seleciona apenas os primeiros 20.000 pixels
   colnames(mref) <- c("R","G","B")
   
-# Repetindo para o fundo 
+# Repetindo para o fundo e sarnambi
   mfundo <- cbind(c(fundo@.Data[,,1]),
                   c(fundo@.Data[,,2]),
                   c(fundo@.Data[,,3]))
   mfundo <- mfundo[sample(1:nrow(mfundo)),]
   mfundo <- mfundo[1:20000,]
   colnames(mfundo) <- c("R","G","B")
-
-  # Repetindo para a folha
+  
   msarnambi <- cbind(c(sarnambi@.Data[,,1]),
-                   c(sarnambi@.Data[,,2]),
-                   c(sarnambi@.Data[,,3]))
+                     c(sarnambi@.Data[,,2]),
+                     c(sarnambi@.Data[,,3]))
   msarnambi <- msarnambi[sample(1:nrow(msarnambi)),]
   msarnambi <- msarnambi[1:20000,]
   colnames(msarnambi) <- c("R","G","B")
@@ -67,7 +65,7 @@
   Mat1 <- data.frame(Mat1)
 
 # Vamos criar modelo de predição dos objetos a partir do dataframe mat1
-  modelo1 <- glm(Y~R+G+B,data = Mat1, family = binomial("logit"))
+  modelo1 <- glm(Y ~ R+G+B,data = Mat1, family = binomial("logit"))
 
 # vamos predizer a imagem em função do modelo1 ---------------------------------
   # Não precisa aleatorizar e vamos usar todos os pixels da imagem
@@ -92,7 +90,7 @@
   plot(im2) # A referencia e as sarnambi se destacam do fundo
   # Modelo conseguiu separa o que é fundo do restante
   
-# Criar outro modelo para separar a imagem de ref do que é folha ---------------
+# Criar outro modelo para separar a imagem de ref do que é sarnambi ---------------
 
   Mat2 <- rbind(cbind(msarnambi,0), 
                 cbind(mref,1))
@@ -113,9 +111,9 @@
   # Observe o quanto a matriz Mobj é menor que a Mim em termos de obs. Isto porque
   # o fundo é muito maior que os objetos como podemos ver:
   plot(im)
-  nrow(Mobj)/nrow(Mim)  # Aprox 30%
+  nrow(Mobj)/nrow(Mim)  # Aprox 45.6%
   
-  # Predizendo o que é Referencia de Folha dentro da matriz de objetos: Mobj
+  # Predizendo o que é Referencia de concha dentro da matriz de objetos: Mobj
   pred2 <- predict(modelo2,newdata = Mobj,type="response")
   pred2 <- round(pred2,0)
   
@@ -133,51 +131,62 @@
                        # s.area (area em pixel)
 
 # Área corrigida para cm²
-# Objeto de referencia (cartão vermelho): 46.75 cm²
-  AreaCor <- Area*453/NumPixelRef #valor em mm²
+# Objeto de referencia (cartão vermelho): 4.53 cm²
+  base = 3.01
+  altura = 1.505
+  fator_conversao_area = (base*altura)/NumPixelRef
+  AreaCor <- Area*fator_conversao_area
   
   # Obtendo as coordenadas dos objetos
   Coord <- computeFeatures.moment(MPred1b) # Pega a coordenada do ponto de massa
   Coord <- Coord[ID2,]  # Pega coordenada só do que nos interessa
   
   plot(im)
-  text(Coord[,1],Coord[,2],round(AreaCor,2 ),col = "red", cex=0.8)
+  text(Coord[,1],Coord[,2], round(AreaCor,2 ), col = "black", cex=0.8)
 
   
- # Calculo dos diametros máximos e minimos ----------------------------------
+ # Calculo dos diametros máximos ---------------------------------------------
   
-  diam_max <- Shape[ID2,6] # Seleciona linhas dos objetos de interesse e a apenas a col. 1
-  # s.area (area em pixel)
+  # Supondo que já tenha MPred1b e a lista de objetos filtrados por área
+  Shape <- computeFeatures.shape(MPred1b)
+  ID2 <- Shape[,"s.area"] > 1200
+  Shape_filt <- Shape[ID2, ]
   
-  # Área corrigida para cm²
-  # Objeto de referencia (cartão vermelho): 46.75 cm²
-  diam_max_corrig <- diam_max*30.10/NumPixelRef #valor em mm²
+  # Extrair o raio máximo
+  max_radius_pixels <- Shape_filt[,"s.radius.max"]
   
-  # Obtendo as coordenadas dos objetos
-  Coord <- computeFeatures.moment(MPred1b) # Pega a coordenada do ponto de massa
-  Coord <- Coord[ID2,]  # Pega coordenada só do que nos interessa
+  # Coordenadas do centro dos objetos
+  Coord <- computeFeatures.moment(MPred1b)
+  Coord <- Coord[ID2,]
   
+  # Área real da referência (em cm²)
+  AreaReal <- 3.01 * 1.505 # = 4.53 cm²
+  
+  # NumPixelRef já calculado no código anterior (quantidade de pixels da referência)
+  # Por exemplo, poderia ser:
+  # NumPixelRef <- sum(pred2 == 1)
+  
+  # Fator de conversão: pixel² -> cm²
+  fator_area <- AreaReal / NumPixelRef
+  
+  # Fator de conversão: pixel -> cm
+  fator_linear <- sqrt(fator_area)
+  
+  # Converter s.radius.max de pixels para cm
+  radius_cm <- max_radius_pixels * fator_linear
+  diameter_cm <- 2 * radius_cm
+  
+  # Plotar os diâmetros em cm sobre a imagem
   plot(im)
-  text(Coord[,1],Coord[,2],round(diam_max_corrig,2 ),col = "red", cex=0.8)
-  
-  
-  
-  
-  
-  
-  
-  
+  text(Coord[,1], Coord[,2], round(diameter_cm, 2), col="blue", cex=0.8)
   
   
   
   # xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
   
   
-  
-  
-  
   # correlacionando peso e área
   area_peso <- as.data.frame(AreaCor)
-library(openxlsx)
+  library(openxlsx)
   write.xlsx(x = area_peso, "area_peso_exp.xlsx")
   
