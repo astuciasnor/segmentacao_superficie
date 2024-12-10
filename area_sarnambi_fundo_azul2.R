@@ -37,7 +37,7 @@
   
   # Embaralha as linhas (pixels) da matriz da referência
   mref <- mref[sample(1:nrow(mref)),]
-  mref <- mref[1:20000,]  # Seleciona apenas os primeiros 20.000 pixels
+  mref <- mref[1:10000,]  # Seleciona apenas os primeiros 20.000 pixels
   colnames(mref) <- c("R","G","B")
   
 # Repetindo para o fundo e sarnambi
@@ -178,15 +178,25 @@
   
   # Plotar os diâmetros em cm sobre a imagem
   plot(im)
-  text(Coord[,1], Coord[,2], round(diameter_cm, 2), col="blue", cex=0.8)
+  text(Coord[,1], Coord[,2], round(diameter_cm, 2), col="black", cex=0.8)
   
   
   
   # Estudo de correlações entre as variáveis medidas e preditas ----------
   
+  # Salvar dados para o Excel
+  # dados_preditos <- data.frame(AreaCor, diameter_cm)
+  # # salve para  excel o dataframe criado dados_preditos
+  # library(openxlsx)
+  # write.xlsx(dados_preditos, file = "dados/dados_preditos.xlsx")
+  # # Obs: Verifica cada objeto e coloque uma ID pois os valores do df não aparecem na 
+  #      # na mesma ordem real da imagem
+  
+  
   # Improtando dados medidos das conchas
   library(readxl)
   library(tidyverse)
+
   
   morfometria <- read_excel("dados/morfometria_sarnambi.xlsx", sheet = 1)
   preditos <- read_excel("dados/morfometria_sarnambi.xlsx", sheet = 2)
@@ -225,7 +235,6 @@
     labs(x = "Diametro máximo (cm)", y = "Erro relativo (%)") 
   
   
-# Salvar dados para o exccel
-  library(openxlsx)
+
 
   
