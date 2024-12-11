@@ -37,7 +37,7 @@
   
   # Embaralha as linhas (pixels) da matriz da referência
   mref <- mref[sample(1:nrow(mref)),]
-  mref <- mref[1:10000,]  # Seleciona apenas os primeiros 20.000 pixels
+  mref <- mref[1:10000,]  # Seleciona apenas os primeiros 10.000 pixels
   colnames(mref) <- c("R","G","B")
   
 # Repetindo para o fundo e sarnambi
@@ -87,8 +87,8 @@
   im2 <- im
   im2@.Data <- MPred1 # A imagem será substituída pelos valores da matriz de 1 e 0
   
-  plot(im2) # A referencia e as sarnambi se destacam do fundo
-  # Modelo conseguiu separa o que é fundo do restante
+  plot(im2) # A referencia e as conchas de sarnambi se destacam do fundo
+  # Modelo conseguiu separar o que é fundo do restante
   
 # Criar outro modelo para separar a imagem de ref do que é sarnambi ---------------
 
@@ -99,12 +99,12 @@
   modelo2 <- glm(Y~R+G+B, family = binomial("logit"), data = Mat2)
 
 
-# Criando uma terceira matriz para separar a folha do fundo e da ref --------------
+# Criando uma terceira matriz para separar a concha do fundo e da ref --------------
   # Vamos criar uma ID para os nossos objetos a fim de extraí-los da imagem im
   ID <- MPred1==0 # faz com que crie uma matriz de valores lógicos TRUE e FALSE
   
-  Mobj <- cbind(cbind(im@.Data[,,1][ID]), # Pega os valores de R para folha e Ref
-                cbind(im@.Data[,,2][ID]), # Pega os valores de G para folha e Ref
+  Mobj <- cbind(cbind(im@.Data[,,1][ID]), # Pega os valores de R para concha e Ref
+                cbind(im@.Data[,,2][ID]), # Pega os valores de G para concha e Ref
                 cbind(im@.Data[,,3][ID]))
   colnames(Mobj) <- c("R","G","B")
   Mobj <- data.frame(Mobj)
@@ -193,7 +193,7 @@
   #      # na mesma ordem real da imagem
   
   
-  # Improtando dados medidos das conchas
+  # Importando dados medidos das conchas
   library(readxl)
   library(tidyverse)
 
@@ -217,7 +217,7 @@
     geom_smooth(method = 'lm') +
     theme_minimal()
   
-  # Caalculo da média dos erros do diametro maximo
+  # Calculo da média dos erros do diametro maximo
   dados2 <- dados |> 
     mutate(diam_max_cm = `Dmax (mm)`/10,
            Erro_diam = (diam_pred - diam_max_cm)/diam_max_cm*100)
