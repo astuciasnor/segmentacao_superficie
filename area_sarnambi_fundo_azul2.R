@@ -203,13 +203,21 @@
   dados <- inner_join(morfometria, preditos, by = "ID")
   
   # correlacionando entre diametro_pred e diametro medido
+  library(ggpmisc)
+  
   dados |> 
-    ggplot(aes(x = `Dmax (mm)`, y = diam_pred)) +
+    ggplot(aes(x = `Dmax (mm)` / 10, y = diam_pred)) +
     geom_point() +
-    geom_smooth(method = 'lm') +
+    geom_smooth(method = 'lm', formula = y ~ x) +
+    stat_poly_eq(aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+                 formula = y ~ x,
+                 parse = TRUE,
+                 label.x = "left", label.y = "top") +
+    labs(x = "Diâmetro máximo (cm)", y = "Diâmetro máximo predito (cm)") +
     theme_minimal()
   
-  # Relação entre superificie e peso
+  
+    # Relação entre superficie e peso
   
   dados |> 
     ggplot(aes(x = area_pred, y = `Peso (g)`)) +
@@ -233,7 +241,9 @@
               nudge_y = 0.6,          # Afastar verticalmente
               nudge_x = 0.01) +        # Afastar horizontalmente (se necessário)
     labs(x = "Diametro máximo (cm)", y = "Erro relativo (%)") 
+
   
+
   
 
 

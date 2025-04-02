@@ -1,0 +1,10 @@
+---
+title: "citações"
+format: html
+editor: visual
+bibliography: references.bib
+---
+
+## Quarto
+
+Foram utilizados os seguintes pacotes da linguagem R para execucção das tarefas computacionais: EBImage ([Pau et al. 2010](#ref-EBImage)), ggplot2 [@ggplot2], tidyverse [@tidyverse] e readxl [@readxl].
