@@ -44,6 +44,7 @@
   mfundo <- cbind(c(fundo@.Data[,,1]),
                   c(fundo@.Data[,,2]),
                   c(fundo@.Data[,,3]))
+  
   mfundo <- mfundo[sample(1:nrow(mfundo)),]
   mfundo <- mfundo[1:20000,]
   colnames(mfundo) <- c("R","G","B")
@@ -64,8 +65,8 @@
   colnames(Mat1)[4] <- "Y"
   Mat1 <- data.frame(Mat1)
 
-# Vamos criar modelo de predição dos objetos a partir do dataframe mat1
-  modelo1 <- glm(Y ~ R+G+B,data = Mat1, family = binomial("logit"))
+# Vamos criar modelo de predição dos objetos a partir do dataframe mat1 (regressão logí)
+  modelo1 <- glm(Y ~ R+G+B, data = Mat1, family = binomial("logit"))
 
 # vamos predizer a imagem em função do modelo1 ---------------------------------
   # Não precisa aleatorizar e vamos usar todos os pixels da imagem
@@ -101,17 +102,17 @@
 
 # Criando uma terceira matriz para separar a concha do fundo e da ref --------------
   # Vamos criar uma ID para os nossos objetos a fim de extraí-los da imagem im
-  ID <- MPred1==0 # faz com que crie uma matriz de valores lógicos TRUE e FALSE
+  ID <- MPred1 == 0 # faz com que crie uma matriz de valores lógicos TRUE e FALSE
   
   Mobj <- cbind(cbind(im@.Data[,,1][ID]), # Pega os valores de R para concha e Ref
                 cbind(im@.Data[,,2][ID]), # Pega os valores de G para concha e Ref
-                cbind(im@.Data[,,3][ID]))
+                cbind(im@.Data[,,3][ID])) # Pega os valores de B para concha e Ref
   colnames(Mobj) <- c("R","G","B")
   Mobj <- data.frame(Mobj)
   # Observe o quanto a matriz Mobj é menor que a Mim em termos de obs. Isto porque
   # o fundo é muito maior que os objetos como podemos ver:
   plot(im)
-  nrow(Mobj)/nrow(Mim)  # Aprox 45.6%
+  nrow(Mobj)/nrow(Mim)  # Aprox 45.3%
   
   # Predizendo o que é Referencia de concha dentro da matriz de objetos: Mobj
   pred2 <- predict(modelo2,newdata = Mobj,type="response")
@@ -121,24 +122,24 @@
   NumPixelRef <- sum(pred2==1)
   
   # ?EBImage
-  MPred1b <- bwlabel(MPred1==0) # Serve para fazer a seguimentação binária
-  Shape <- computeFeatures.shape(MPred1b) # Obtém a área
-  ID2 <- Shape[,1]>1200  # Valores acima de 1.000 para excluir ruídos
+  MPred1b <- bwlabel(MPred1==0) # Serve rotular/detectar cada objeto de interesse
+  Shape <- computeFeatures.shape(MPred1b) # Obtém caracteristica moorfológica (área, perimetro, etc)
+  ID2 <- Shape[,1]>1200  # Valores acima de 1.200 para excluir ruídos
   summary(ID2) # Observe que pega 30 objetos (29 sarnambi e a ref.)
   
   
   Area <- Shape[ID2,1] # Seleciona linhas dos objetos de interesse e a apenas a col. 1
-                       # s.area (area em pixel)
+                       # s.area (area em pixels)
 
 # Área corrigida para cm²
 # Objeto de referencia (cartão vermelho): 4.53 cm²
   base = 3.01
   altura = 1.505
   fator_conversao_area = (base*altura)/NumPixelRef
-  AreaCor <- Area*fator_conversao_area
+  AreaCor <- Area*fator_conversao_area  # Area corrigida para cm²
   
   # Obtendo as coordenadas dos objetos
-  Coord <- computeFeatures.moment(MPred1b) # Pega a coordenada do ponto de massa
+  Coord <- computeFeatures.moment(MPred1b) # Pega a coordenada do ponto de massa (centro do objeto)
   Coord <- Coord[ID2,]  # Pega coordenada só do que nos interessa
   
   plot(im)
@@ -147,7 +148,7 @@
   
  # Calculo dos diametros máximos ---------------------------------------------
   
-  # Supondo que já tenha MPred1b e a lista de objetos filtrados por área
+  # Supondo que já tenha MPred1b (rotulos dos objetos de interesse) e a lista de objetos filtrados por área
   Shape <- computeFeatures.shape(MPred1b)
   ID2 <- Shape[,"s.area"] > 1200
   Shape_filt <- Shape[ID2, ]
@@ -169,7 +170,7 @@
   # Fator de conversão: pixel² -> cm²
   fator_area <- AreaReal / NumPixelRef
   
-  # Fator de conversão: pixel -> cm
+  # Fator de conversão linear: pixel -> cm
   fator_linear <- sqrt(fator_area)
   
   # Converter s.radius.max de pixels para cm
